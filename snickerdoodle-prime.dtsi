@@ -18,9 +18,9 @@
 		#size-cells = <1>;
 		ranges;
 
-		reserved@18000000 {
+/*		reserved@18000000 {
 			reg = <0x18000000 0x8000000>;
-		};
+		};*/
 	};
 
 	memory@0 {
