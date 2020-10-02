@@ -1,29 +1,194 @@
 /**
- * Copyright (c) 2016 krtkl inc.
- *
- * snickerdoodle prime base device tree source
+ * Copyright (c) 2020 Fantaske Tech LLC
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published by
  * the Free Software Foundation.
  */
+/ {
+	aliases {
+		serial1 = &uart1;
+		i2c0 = &i2c0;
+		i2c1 = &i2c1;
+	};
+
+	chosen {
+        bootargs = "console=ttyPS0,115200n8 earlyprintk";
+        linux,stdout-path = &uart0;
+        stdout-path = &uart0;
+    };
+
+	prox0: srf04 {
+		compatible = "devantech,srf04";
+		status = "okay";
+		trig-gpios = <&gpio0 30 4>;
+		echo-gpios = <&gpio0 31 4>;
+	};
+
+};
+
+&uart1 {
+    status = "okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_uart1_default>;
+};
 
 &i2c0{
 	status = "okay";
-	clock-frequency = <100000>;
+    clock-frequency = <400000>;
+    pinctrl-names = "default, gpio";
+    pinctrl-0 = <&pinctrl_i2c0_default>;
+//    pinctrl-1 = <&pinctrl_i2c0_gpio>;
+//    scl = <&gpio0 18 0>;
+//    sda = <&gpio0 19 0>;
+};
+
+&i2c1{
+	status = "okay";
+	clock-frequency = <400000>;
+    pinctrl-names = "default", "gpio";
+    pinctrl-0 = <&pinctrl_i2c1_default>;
+//    pinctrl-1 = <&pinctrl_i2c1_gpio>;
+//    scl = <&gpio0 52 0>;
+//    sda = <&gpio0 53 0>;
 
 	mpu9250@68 {
-		compatible = "invensense,mpu9250";
-		reg = <0x68>;
-		i2c-gate {
-			#address-cells = <1>;
-			#size-cells = <0>;
-			ax8975@c {
-				compatible = "ak,ak8975";
-				reg = <0x0c>;
-			};
-		};
+        compatible = "invensense,mpu9250";
+        reg = <0x68>;
+        interrupt-parent = <&gpio0>;
+        interrupts = <20 2>;
+        i2c-gate {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            ax8975@c {
+                compatible = "ak,ak8975";
+                reg = <0x0c>;
+            };
+        };
+    };
+
+	pca@40 {
+		compatible = "nxp,pca9685-pwm";
+		#pwm-cells = <2>;
+		reg = <0x40>;
+		status = "okay";
+	};
+
+	bme680@76 {
+		compatible = "bosch,bme680";
+		reg = <0x76>;
+		status = "okay";
 	};
 };
 
+&gpio0 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_gpio0_default>;
 
+};
+
+&pinctrl0{
+	pinctrl_i2c0_default: i2c0-default {
+		mux {
+			groups = "i2c0_2_grp";
+			function = "i2c0";
+		};
+
+		conf {
+			groups = "i2c0_2_grp";
+			bias-pull-up;
+			slew-rate = <0>;
+			io-standard = <1>;
+		};
+	};
+/*
+	pinctrl_i2c0_gpio: i2c0-gpio {
+		mux {
+			groups = "gpio0_18_grp", "gpio0_19_grp";
+			function = "gpio0";
+		};
+
+		conf {
+			groups = "gpio0_18_grp", "gpio0_19_grp";
+			slew-rate = <0>;
+			io-standard = <1>;
+		};
+	};
+*/
+	pinctrl_i2c1_default: i2c1-default {
+		mux {
+			groups = "i2c1_10_grp";
+			function = "i2c1";
+		};
+
+		conf {
+			groups = "i2c1_10_grp";
+			bias-pull-up;
+			slew-rate = <0>;
+			io-standard = <1>;
+		};
+	};
+/*
+	pinctrl_i2c1_gpio: i2c1-gpio {
+		mux {
+			groups = "gpio0_52_grp", "gpio0_53_grp";
+			function = "gpio0";
+		};
+
+		conf {
+			groups = "gpio0_52_grp", "gpio0_53_grp";
+			slew-rate = <0>;
+			io-standard = <1>;
+		};
+	};
+*/
+    pinctrl_uart1_default: uart1-default {
+        mux {
+            groups = "uart1_2_grp";
+            function = "uart1";
+        };
+
+        conf {
+            groups = "uart1_2_grp";
+            slew-rate = <0>;
+            io-standard = <1>;
+        };
+
+        conf-rx {
+            pins = "MIO17";
+            bias-high-impedance;
+        };
+
+        conf-tx {
+            pins = "MIO16";
+            bias-disable;
+        };
+    };
+
+    pinctrl_gpio0_default: gpio0-default {
+        mux {
+            function = "gpio0";
+            groups = "gpio0_20_grp", "gpio0_21_grp", "gpio0_22_grp",
+                 "gpio0_23_grp", "gpio0_24_grp", "gpio0_25_grp",
+                 "gpio0_26_grp", "gpio0_27_grp";
+        };
+
+        conf {
+            groups = "gpio0_20_grp", "gpio0_21_grp", "gpio0_22_grp",
+                 "gpio0_23_grp", "gpio0_24_grp", "gpio0_25_grp",
+                 "gpio0_26_grp", "gpio0_27_grp";
+            slew-rate = <0>;
+            io-standard = <1>;
+        };
+/*
+        conf-pull-up {
+            pins = "MIO9", "MIO10", "MIO11", "MIO12", "MIO13", "MIO14";
+            bias-pull-up;
+        };
+*/
+        conf-pull-none {
+            pins = "MIO20", "MIO21", "MIO22", "MIO23", "MIO24", "MIO25", "MIO26", "MIO27";
+            bias-disable;
+        };
+    };
+};
