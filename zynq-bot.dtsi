@@ -7,15 +7,16 @@
  */
 / {
 	aliases {
-		serial1 = &uart1;
+		serial0 = &uart1;
+		serial1 = &uart0;
 		i2c0 = &i2c0;
 		i2c1 = &i2c1;
 	};
 
 	chosen {
         bootargs = "console=ttyPS0,115200n8 earlyprintk";
-        linux,stdout-path = &uart0;
-        stdout-path = &uart0;
+        linux,stdout-path = &uart1;
+        stdout-path = &uart1;
     };
 
 	prox0: srf04 {
@@ -27,7 +28,28 @@
 
 };
 
+&amba {
+	uart2: uartlite@42000000 {
+    	status = "okay";
+		compatible = "xlnx,xps-uartlite-1.00.a";
+		reg = <0x42000000 0x1000>;
+		//int # found in xparameters.h = 61, subract 32 from that number
+		interrupts = <0 29 4>;
+		interrupt-parent = <&intc>;
+		clock = <50000000>;
+	};
+	uart3: uartlite@42001000 {
+    	status = "okay";
+        compatible = "xlnx,xps-uartlite-1.00.a";
+        reg = <0x42001000 0x1000>;
+        interrupts = <0 30 4>;
+        interrupt-parent = <&intc>;
+        clock = <50000000>;
+    };
+};
+
 &uart1 {
+	u-boot,dm-pre-reloc;
     status = "okay";
     pinctrl-names = "default";
     pinctrl-0 = <&pinctrl_uart1_default>;
@@ -36,21 +58,15 @@
 &i2c0{
 	status = "okay";
     clock-frequency = <400000>;
-    pinctrl-names = "default, gpio";
+    pinctrl-names = "default";
     pinctrl-0 = <&pinctrl_i2c0_default>;
-//    pinctrl-1 = <&pinctrl_i2c0_gpio>;
-//    scl = <&gpio0 18 0>;
-//    sda = <&gpio0 19 0>;
 };
 
 &i2c1{
 	status = "okay";
 	clock-frequency = <400000>;
-    pinctrl-names = "default", "gpio";
+    pinctrl-names = "default";
     pinctrl-0 = <&pinctrl_i2c1_default>;
-//    pinctrl-1 = <&pinctrl_i2c1_gpio>;
-//    scl = <&gpio0 52 0>;
-//    sda = <&gpio0 53 0>;
 
 	mpu9250@68 {
         compatible = "invensense,mpu9250";
@@ -101,20 +117,7 @@
 			io-standard = <1>;
 		};
 	};
-/*
-	pinctrl_i2c0_gpio: i2c0-gpio {
-		mux {
-			groups = "gpio0_18_grp", "gpio0_19_grp";
-			function = "gpio0";
-		};
 
-		conf {
-			groups = "gpio0_18_grp", "gpio0_19_grp";
-			slew-rate = <0>;
-			io-standard = <1>;
-		};
-	};
-*/
 	pinctrl_i2c1_default: i2c1-default {
 		mux {
 			groups = "i2c1_10_grp";
@@ -128,20 +131,7 @@
 			io-standard = <1>;
 		};
 	};
-/*
-	pinctrl_i2c1_gpio: i2c1-gpio {
-		mux {
-			groups = "gpio0_52_grp", "gpio0_53_grp";
-			function = "gpio0";
-		};
 
-		conf {
-			groups = "gpio0_52_grp", "gpio0_53_grp";
-			slew-rate = <0>;
-			io-standard = <1>;
-		};
-	};
-*/
     pinctrl_uart1_default: uart1-default {
         mux {
             groups = "uart1_2_grp";
