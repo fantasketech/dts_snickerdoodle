@@ -2,6 +2,8 @@
 # SPDX-License-Identifier:	GPL-2.0+
 #
 
+incl=/home/nf/git/linux_snickerdoodle/include
+
 src += $(wildcard *.dts)
 obj += $(src:.dts=.dtb)
 
@@ -34,7 +36,7 @@ Q = @
 
 %.dtb: %.dts
 	@echo "  $< --> $@"
-	@dtc -@ -q -I dts -O dtb -o $@ $<
+	@dtc -@ -q --include $(incl) -I dts -O dtb -o $@ $<
 
 %.dtbo: %.dts
 	@dtc -q -I dts -O dtb -o $@ $<

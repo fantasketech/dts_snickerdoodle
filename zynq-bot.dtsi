@@ -5,6 +5,7 @@
  * under the terms of the GNU General Public License version 2 as published by
  * the Free Software Foundation.
  */
+
 / {
 	aliases {
 		serial0 = &uart1;
@@ -22,10 +23,11 @@
 	prox0: srf04 {
 		compatible = "devantech,srf04";
 		status = "okay";
-		trig-gpios = <&gpio0 30 4>;
-		echo-gpios = <&gpio0 31 4>;
+        interrupt-parent = <&gpio0>;
+        interrupts = <31 1>;
+		trig-gpios = <&gpio0 30 0>;
+		echo-gpios = <&gpio0 31 0>;
 	};
-
 };
 
 &amba {
@@ -46,8 +48,17 @@
         interrupt-parent = <&intc>;
         clock = <50000000>;
     };
-};
 
+};
+/*
+&spi0 {
+	dac: dac@2 {
+		compatible = "ti,dac7311";
+		reg = <2>;
+		spi-max-frequency = <1000000>;
+	};
+};
+*/
 &uart1 {
 	u-boot,dm-pre-reloc;
     status = "okay";
@@ -60,6 +71,30 @@
     clock-frequency = <400000>;
     pinctrl-names = "default";
     pinctrl-0 = <&pinctrl_i2c0_default>;
+
+	pwm0: pca@40 {
+		compatible = "nxp,pca9685-pwm";
+		#pwm-cells = <2>;
+		reg = <0x40>;
+		status = "okay";
+	};
+
+	pot10k0: ds1803@28{
+		reg = <0x28>;
+		compatible = "maxim,ds1803-010";
+	};
+
+	pcf8575: gpio@38 {
+        compatible = "nxp,pcf8575";
+        reg = <0x38>;
+        interrupt-parent = <&gpio0>;
+        interrupts = <28 2>;
+        gpio-controller;
+        #gpio-cells = <2>;
+        interrupt-controller;
+        #interrupt-cells = <2>;
+    };
+
 };
 
 &i2c1{
@@ -68,7 +103,7 @@
     pinctrl-names = "default";
     pinctrl-0 = <&pinctrl_i2c1_default>;
 
-	mpu9250@68 {
+	imu_tail: mpu9250@68 {
         compatible = "invensense,mpu9250";
         reg = <0x68>;
         interrupt-parent = <&gpio0>;
@@ -83,18 +118,28 @@
         };
     };
 
-	pca@40 {
-		compatible = "nxp,pca9685-pwm";
-		#pwm-cells = <2>;
-		reg = <0x40>;
-		status = "okay";
-	};
+	imu_head: mpu9250@69 {
+        compatible = "invensense,mpu9250";
+        reg = <0x69>;
+        interrupt-parent = <&gpio0>;
+        interrupts = <21 2>;
+        i2c-gate {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            ax8975@c {
+                compatible = "ak,ak8975";
+                reg = <0x0c>;
+            };
+        };
+    };
 
-	bme680@76 {
+	sniffer: bme680@76 {
 		compatible = "bosch,bme680";
 		reg = <0x76>;
 		status = "okay";
 	};
+
+
 };
 
 &gpio0 {
